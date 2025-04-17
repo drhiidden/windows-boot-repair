@@ -4,13 +4,30 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Madrid"
     open-pull-requests-limit: 10
     labels:
       - "dependencies"
       - "github-actions"
+    groups:
+      github-actions:
+        patterns:
+          - "actions/*"
+      security-actions:
+        patterns:
+          - "github/codeql-action"
+          - "actions/dependency-review-action"
     commit-message:
-      prefix: "github-actions"
+      prefix: "ci"
       include: "scope"
+    reviewers:
+      - "drhiidden"
+    assignees:
+      - "drhiidden"
+    target-branch: "main"
+    versioning-strategy: increase
 
   - package-ecosystem: "npm"
     directory: "/"

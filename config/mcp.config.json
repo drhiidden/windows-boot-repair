@@ -1,0 +1,61 @@
+{
+    "version": "1.0.0",
+    "modules": {
+        "IntegrityCheckModule": {
+            "enabled": true,
+            "priority": -2,
+            "dependencies": []
+        },
+        "LoggingModule": {
+            "enabled": true,
+            "priority": -1,
+            "dependencies": []
+        },
+        "BackupModule": {
+            "enabled": true,
+            "priority": 0,
+            "dependencies": ["LoggingModule"]
+        },
+        "SystemUtilsModule": {
+            "enabled": true,
+            "priority": 0,
+            "dependencies": ["LoggingModule"]
+        },
+        "DiagnosisModule": {
+            "enabled": true,
+            "priority": 1,
+            "dependencies": ["LoggingModule", "SystemUtilsModule"]
+        },
+        "BootRepairModule": {
+            "enabled": true,
+            "priority": 2,
+            "dependencies": ["LoggingModule", "SystemUtilsModule", "BackupModule"]
+        },
+        "FinalVerifyModule": {
+            "enabled": true,
+            "priority": 3,
+            "dependencies": ["LoggingModule", "SystemUtilsModule"]
+        }
+    },
+    "logging": {
+        "level": "INFO",
+        "retention_days": 7,
+        "path": "./logs"
+    },
+    "backup": {
+        "path": "./backups",
+        "retention_days": 30,
+        "min_free_space_gb": 10
+    },
+    "system": {
+        "min_disk_space_gb": 20,
+        "required_services": [
+            "WinDefend",
+            "wuauserv"
+        ],
+        "critical_paths": [
+            "C:\\Windows\\System32",
+            "C:\\Windows\\Boot"
+        ]
+    }
+} 
