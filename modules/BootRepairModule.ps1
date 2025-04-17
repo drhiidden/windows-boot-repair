@@ -16,6 +16,7 @@ function Start-BootRepairModule {
     }
     
     $tempFiles = @()
+    $criticalFiles = @()
     
     try {
         # Verificar si podemos proceder basado en el diagnóstico
@@ -41,8 +42,8 @@ function Start-BootRepairModule {
             return $results
         }
     
-    $bootrepairLog = Join-Path $LogPath "bootrepair.log"
-        $tempFiles += $bootrepairLog
+        $bootrepairLog = Join-Path $Config.logging.path "bootrepair.log"
+        $criticalFiles += $bootrepairLog
         
         # Crear backup antes de proceder
         Write-Log "Creando backup de la configuración de arranque" -Module "BootRepair"
@@ -73,8 +74,9 @@ function Start-BootRepairModule {
         # Backup de BCD con manejo de errores
         try {
             $bcdBackupFile = Join-Path $backupPath "bcd_backup.txt"
+            $criticalFiles += $bcdBackupFile
             $bcdProcess = Start-Process -FilePath "bcdedit.exe" -ArgumentList "/export `"$bcdBackupFile`"" -NoNewWindow -Wait -RedirectStandardOutput "$bcdBackupFile.out" -RedirectStandardError "$bcdBackupFile.err"
-            $tempFiles += @("$bcdBackupFile.out", "$bcdBackupFile.err")
+            $criticalFiles += @("$bcdBackupFile.out", "$bcdBackupFile.err")
             
             if (Test-Path "$bcdBackupFile.err") {
                 $bcdErrors = Get-Content -Path "$bcdBackupFile.err" -Encoding UTF8 -ErrorAction Stop
@@ -125,11 +127,11 @@ exit
 "@
     
             $diskpartOutput = Join-Path $backupPath "diskpart.log"
-            $tempFiles += $diskpartOutput
+            $criticalFiles += $diskpartOutput
             
             try {
                 $diskpartProcess = Start-Process -FilePath "diskpart.exe" -ArgumentList "/s `"$diskpartScript`"" -NoNewWindow -Wait -RedirectStandardOutput $diskpartOutput -RedirectStandardError "$diskpartOutput.err"
-                $tempFiles += "$diskpartOutput.err"
+                $criticalFiles += "$diskpartOutput.err"
                 
                 if (Test-Path "$diskpartOutput.err") {
                     $diskpartErrors = Get-Content -Path "$diskpartOutput.err" -Encoding UTF8 -ErrorAction Stop
@@ -151,10 +153,10 @@ exit
             Write-Log "Reparando archivos de arranque UEFI" -Module "BootRepair"
             try {
                 $bcdbootOutput = Join-Path $backupPath "bcdboot.log"
-                $tempFiles += $bcdbootOutput
+                $criticalFiles += $bcdbootOutput
                 
                 $bcdbootProcess = Start-Process -FilePath "bcdboot.exe" -ArgumentList "$($systemInfo.SystemDrive.DriveLetter)\Windows /s M: /f UEFI" -NoNewWindow -Wait -RedirectStandardOutput $bcdbootOutput -RedirectStandardError "$bcdbootOutput.err"
-                $tempFiles += "$bcdbootOutput.err"
+                $criticalFiles += "$bcdbootOutput.err"
                 
                 if (Test-Path "$bcdbootOutput.err") {
                     $bcdbootErrors = Get-Content -Path "$bcdbootOutput.err" -Encoding UTF8 -ErrorAction Stop
@@ -176,10 +178,10 @@ exit
             Write-Log "Reconstruyendo BCD en modo UEFI" -Module "BootRepair"
             try {
                 $bcdeditOutput = Join-Path $backupPath "bcdedit.log"
-                $tempFiles += $bcdeditOutput
+                $criticalFiles += $bcdeditOutput
                 
                 $bcdeditProcess = Start-Process -FilePath "bcdedit.exe" -ArgumentList "/set {bootmgr} path \EFI\Microsoft\Boot\bootmgfw.efi" -NoNewWindow -Wait -RedirectStandardOutput $bcdeditOutput -RedirectStandardError "$bcdeditOutput.err"
-                $tempFiles += "$bcdeditOutput.err"
+                $criticalFiles += "$bcdeditOutput.err"
                 
                 if (Test-Path "$bcdeditOutput.err") {
                     $bcdeditErrors = Get-Content -Path "$bcdeditOutput.err" -Encoding UTF8 -ErrorAction Stop
@@ -216,11 +218,11 @@ exit
             Write-Log "Reparando MBR y sector de arranque" -Module "BootRepair"
             try {
                 $bootrecOutput = Join-Path $backupPath "bootrec.log"
-                $tempFiles += $bootrecOutput
+                $criticalFiles += $bootrecOutput
                 
                 # Reparar MBR
                 $bootrecProcess = Start-Process -FilePath "bootrec.exe" -ArgumentList "/fixmbr" -NoNewWindow -Wait -RedirectStandardOutput $bootrecOutput -RedirectStandardError "$bootrecOutput.err"
-                $tempFiles += "$bootrecOutput.err"
+                $criticalFiles += "$bootrecOutput.err"
                 
                 if (Test-Path "$bootrecOutput.err") {
                     $bootrecErrors = Get-Content -Path "$bootrecOutput.err" -Encoding UTF8 -ErrorAction Stop
@@ -252,11 +254,11 @@ exit
             Write-Log "Reconstruyendo BCD en modo BIOS" -Module "BootRepair"
             try {
                 $bootrecOutput = Join-Path $backupPath "bootrec_scan.log"
-                $tempFiles += $bootrecOutput
+                $criticalFiles += $bootrecOutput
                 
                 # Escanear sistemas operativos
                 $bootrecProcess = Start-Process -FilePath "bootrec.exe" -ArgumentList "/scanos" -NoNewWindow -Wait -RedirectStandardOutput $bootrecOutput -RedirectStandardError "$bootrecOutput.err"
-                $tempFiles += "$bootrecOutput.err"
+                $criticalFiles += "$bootrecOutput.err"
                 
                 if (Test-Path "$bootrecOutput.err") {
                     $bootrecErrors = Get-Content -Path "$bootrecOutput.err" -Encoding UTF8 -ErrorAction Stop
@@ -322,10 +324,10 @@ exit
                 }
                 
                 $bcdImportOutput = Join-Path $backupPath "bcd_import.log"
-                $tempFiles += $bcdImportOutput
+                $criticalFiles += $bcdImportOutput
                 
                 $bcdeditProcess = Start-Process -FilePath "bcdedit.exe" -ArgumentList "/import `"$bcdBackupFile`"" -NoNewWindow -Wait -RedirectStandardOutput $bcdImportOutput -RedirectStandardError "$bcdImportOutput.err"
-                $tempFiles += "$bcdImportOutput.err"
+                $criticalFiles += "$bcdImportOutput.err"
                 
                 if (Test-Path "$bcdImportOutput.err") {
                     $bcdImportErrors = Get-Content -Path "$bcdImportOutput.err" -Encoding UTF8 -ErrorAction Stop
@@ -363,10 +365,10 @@ exit
                     }
                     
                     $bcdImportOutput = Join-Path $backupPath "bcd_import.log"
-                    $tempFiles += $bcdImportOutput
+                    $criticalFiles += $bcdImportOutput
                     
                     $bcdeditProcess = Start-Process -FilePath "bcdedit.exe" -ArgumentList "/import `"$bcdBackupFile`"" -NoNewWindow -Wait -RedirectStandardOutput $bcdImportOutput -RedirectStandardError "$bcdImportOutput.err"
-                    $tempFiles += "$bcdImportOutput.err"
+                    $criticalFiles += "$bcdImportOutput.err"
                     
                     if (Test-Path "$bcdImportOutput.err") {
                         $bcdImportErrors = Get-Content -Path "$bcdImportOutput.err" -Encoding UTF8 -ErrorAction Stop
@@ -406,10 +408,10 @@ exit
                 }
                 
                 $bcdImportOutput = Join-Path $backupPath "bcd_import.log"
-                $tempFiles += $bcdImportOutput
+                $criticalFiles += $bcdImportOutput
                 
                 $bcdeditProcess = Start-Process -FilePath "bcdedit.exe" -ArgumentList "/import `"$bcdBackupFile`"" -NoNewWindow -Wait -RedirectStandardOutput $bcdImportOutput -RedirectStandardError "$bcdImportOutput.err"
-                $tempFiles += "$bcdImportOutput.err"
+                $criticalFiles += "$bcdImportOutput.err"
                 
                 if (Test-Path "$bcdImportOutput.err") {
                     $bcdImportErrors = Get-Content -Path "$bcdImportOutput.err" -Encoding UTF8 -ErrorAction Stop
@@ -430,9 +432,9 @@ exit
         return $results
     }
     finally {
-        # Limpiar archivos temporales
+        # Limpiar solo archivos temporales, preservar archivos críticos
         foreach ($file in $tempFiles) {
-            if (Test-Path $file) {
+            if (Test-Path $file -and $file -notin $criticalFiles) {
                 try {
                     Remove-Item $file -Force
                 }
@@ -442,12 +444,12 @@ exit
             }
         }
         
-        # Limpiar logs antiguos
+        # Limpiar logs antiguos excepto los críticos
         $logRetentionDays = $Config.logging.retention_days
         $logPath = $Config.logging.path
         if (Test-Path $logPath) {
             Get-ChildItem -Path $logPath -File | Where-Object {
-                $_.LastWriteTime -lt (Get-Date).AddDays(-$logRetentionDays)
+                $_.LastWriteTime -lt (Get-Date).AddDays(-$logRetentionDays) -and $_.FullName -notin $criticalFiles
             } | ForEach-Object {
                 try {
                     Remove-Item $_.FullName -Force

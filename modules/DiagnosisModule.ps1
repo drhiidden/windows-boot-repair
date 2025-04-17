@@ -19,6 +19,7 @@ function Start-DiagnosisModule {
     }
     
     $tempFiles = @()
+    $criticalFiles = @()
     
     try {
         # Verificar permisos de administrador
@@ -98,16 +99,16 @@ function Start-DiagnosisModule {
         # Verificar disco del sistema
         $systemDrive = $results.SystemInfo.SystemDrive.DriveLetter
         Write-Log "Ejecutando chkdsk en $systemDrive" -Module "Diagnosis"
-        $chkdskOutput = Join-Path $LogPath "diagnosis_output.log"
-        $tempFiles += $chkdskOutput
+        $chkdskOutput = Join-Path $Config.logging.path "diagnosis_output.log"
+        $criticalFiles += $chkdskOutput
         
         # Ejecutar chkdsk con codificación UTF-8 y manejo de errores
         try {
             $chkdskProcess = Start-Process -FilePath "chkdsk.exe" -ArgumentList "$systemDrive /f /r /x" -NoNewWindow -Wait -RedirectStandardOutput $chkdskOutput -RedirectStandardError "$chkdskOutput.error"
+            $criticalFiles += "$chkdskOutput.error"
             $chkdskContent = Get-Content -Path $chkdskOutput -Encoding UTF8 -ErrorAction Stop
             if (Test-Path "$chkdskOutput.error") {
                 $chkdskErrors = Get-Content -Path "$chkdskOutput.error" -Encoding UTF8 -ErrorAction Stop
-                $tempFiles += "$chkdskOutput.error"
                 if ($chkdskErrors) {
                     Add-Content -Path $chkdskOutput -Value "`nErrores de chkdsk:`n$chkdskErrors"
                 }
@@ -122,13 +123,13 @@ function Start-DiagnosisModule {
         # Verificar estado SMART con manejo de codificación
         Write-Log "Verificando estado SMART de los discos" -Module "Diagnosis"
         try {
-            $smartOutput = Join-Path $LogPath "smart_status.log"
-            $tempFiles += $smartOutput
+            $smartOutput = Join-Path $Config.logging.path "smart_status.log"
+            $criticalFiles += $smartOutput
             $smartProcess = Start-Process -FilePath "wmic.exe" -ArgumentList "diskdrive get status" -NoNewWindow -Wait -RedirectStandardOutput $smartOutput -RedirectStandardError "$smartOutput.error"
+            $criticalFiles += "$smartOutput.error"
             $smartStatus = Get-Content -Path $smartOutput -Encoding UTF8 -ErrorAction Stop
             if (Test-Path "$smartOutput.error") {
                 $smartErrors = Get-Content -Path "$smartOutput.error" -Encoding UTF8 -ErrorAction Stop
-                $tempFiles += "$smartOutput.error"
                 if ($smartErrors) {
                     Add-Content -Path $smartOutput -Value "`nErrores SMART:`n$smartErrors"
                 }
@@ -162,16 +163,16 @@ function Start-DiagnosisModule {
             $results.Severity = "CRITICAL"
             $results.CanProceed = $false
         }
-        
-        # Verificar integridad del sistema
-        Write-Log "Ejecutando SFC" -Module "Diagnosis"
-        $sfcOutput = Join-Path $LogPath "sfc_output.log"
-        $tempFiles += $sfcOutput
+    
+    # Verificar integridad del sistema
+    Write-Log "Ejecutando SFC" -Module "Diagnosis"
+        $sfcOutput = Join-Path $Config.logging.path "sfc_output.log"
+        $criticalFiles += $sfcOutput
         try {
             $sfcProcess = Start-Process -FilePath "sfc.exe" -ArgumentList "/scannow /offbootdir=$systemDrive /offwindir=$systemDrive\Windows" -NoNewWindow -Wait -RedirectStandardOutput $sfcOutput -RedirectStandardError "$sfcOutput.error"
+            $criticalFiles += "$sfcOutput.error"
             if (Test-Path "$sfcOutput.error") {
                 $sfcErrors = Get-Content -Path "$sfcOutput.error" -Encoding UTF8 -ErrorAction Stop
-                $tempFiles += "$sfcOutput.error"
                 if ($sfcErrors) {
                     Add-Content -Path $sfcOutput -Value "`nErrores SFC:`n$sfcErrors"
                 }
@@ -182,16 +183,16 @@ function Start-DiagnosisModule {
             $results.Errors += "Error al ejecutar SFC: $($_.Exception.Message)"
             $results.Success = $false
         }
-        
-        # Verificar imagen del sistema
-        Write-Log "Ejecutando DISM" -Module "Diagnosis"
-        $dismOutput = Join-Path $LogPath "dism_output.log"
-        $tempFiles += $dismOutput
+    
+    # Verificar imagen del sistema
+    Write-Log "Ejecutando DISM" -Module "Diagnosis"
+        $dismOutput = Join-Path $Config.logging.path "dism_output.log"
+        $criticalFiles += $dismOutput
         try {
             $dismProcess = Start-Process -FilePath "DISM.exe" -ArgumentList "/Image:$systemDrive /Cleanup-Image /RestoreHealth" -NoNewWindow -Wait -RedirectStandardOutput $dismOutput -RedirectStandardError "$dismOutput.error"
+            $criticalFiles += "$dismOutput.error"
             if (Test-Path "$dismOutput.error") {
                 $dismErrors = Get-Content -Path "$dismOutput.error" -Encoding UTF8 -ErrorAction Stop
-                $tempFiles += "$dismOutput.error"
                 if ($dismErrors) {
                     Add-Content -Path $dismOutput -Value "`nErrores DISM:`n$dismErrors"
                 }
@@ -246,9 +247,9 @@ function Start-DiagnosisModule {
         return $results
     }
     finally {
-        # Limpiar archivos temporales
+        # Limpiar solo archivos temporales, preservar archivos críticos
         foreach ($file in $tempFiles) {
-            if (Test-Path $file) {
+            if (Test-Path $file -and $file -notin $criticalFiles) {
                 try {
                     Remove-Item $file -Force
                 }
@@ -258,12 +259,12 @@ function Start-DiagnosisModule {
             }
         }
         
-        # Limpiar logs antiguos
+        # Limpiar logs antiguos excepto los críticos
         $logRetentionDays = $Config.logging.retention_days
         $logPath = $Config.logging.path
         if (Test-Path $logPath) {
             Get-ChildItem -Path $logPath -File | Where-Object {
-                $_.LastWriteTime -lt (Get-Date).AddDays(-$logRetentionDays)
+                $_.LastWriteTime -lt (Get-Date).AddDays(-$logRetentionDays) -and $_.FullName -notin $criticalFiles
             } | ForEach-Object {
                 try {
                     Remove-Item $_.FullName -Force

@@ -18,6 +18,7 @@ function Start-FinalVerifyModule {
     }
     
     $tempFiles = @()
+    $criticalFiles = @()
     
     try {
         # Verificar resultados del diagnóstico
@@ -97,12 +98,12 @@ function Start-FinalVerifyModule {
         
         # Verificar integridad del BCD
         Write-Log "Verificando integridad del BCD" -Module "FinalVerify"
-        $bcdOutput = Join-Path $LogPath "bcd_verify.log"
-        $tempFiles += $bcdOutput
+        $bcdOutput = Join-Path $Config.logging.path "bcd_verify.log"
+        $criticalFiles += $bcdOutput
         
         try {
             $bcdProcess = Start-Process -FilePath "bcdedit.exe" -ArgumentList "/v" -NoNewWindow -Wait -RedirectStandardOutput $bcdOutput -RedirectStandardError "$bcdOutput.err"
-            $tempFiles += "$bcdOutput.err"
+            $criticalFiles += "$bcdOutput.err"
             
             if (Test-Path "$bcdOutput.err") {
                 $bcdErrors = Get-Content -Path "$bcdOutput.err" -Encoding UTF8 -ErrorAction Stop
@@ -119,12 +120,12 @@ function Start-FinalVerifyModule {
         
         # Verificar disco del sistema
         Write-Log "Ejecutando verificación final de disco" -Module "FinalVerify"
-        $chkdskOutput = Join-Path $LogPath "chkdsk_final.log"
-        $tempFiles += $chkdskOutput
+        $chkdskOutput = Join-Path $Config.logging.path "chkdsk_final.log"
+        $criticalFiles += $chkdskOutput
         
         try {
             $chkdskProcess = Start-Process -FilePath "chkdsk.exe" -ArgumentList "$($systemInfo.SystemDrive.DriveLetter) /f /r /x" -NoNewWindow -Wait -RedirectStandardOutput $chkdskOutput -RedirectStandardError "$chkdskOutput.err"
-            $tempFiles += "$chkdskOutput.err"
+            $criticalFiles += "$chkdskOutput.err"
             
             if (Test-Path "$chkdskOutput.err") {
                 $chkdskErrors = Get-Content -Path "$chkdskOutput.err" -Encoding UTF8 -ErrorAction Stop
@@ -147,12 +148,12 @@ function Start-FinalVerifyModule {
         
         # Verificar integridad del sistema
         Write-Log "Ejecutando verificación final de archivos del sistema" -Module "FinalVerify"
-        $sfcOutput = Join-Path $LogPath "sfc_final.log"
-        $tempFiles += $sfcOutput
+        $sfcOutput = Join-Path $Config.logging.path "sfc_final.log"
+        $criticalFiles += $sfcOutput
         
         try {
             $sfcProcess = Start-Process -FilePath "sfc.exe" -ArgumentList "/scannow /offbootdir=$($systemInfo.SystemDrive.DriveLetter) /offwindir=$($systemInfo.SystemDrive.DriveLetter)\Windows" -NoNewWindow -Wait -RedirectStandardOutput $sfcOutput -RedirectStandardError "$sfcOutput.err"
-            $tempFiles += "$sfcOutput.err"
+            $criticalFiles += "$sfcOutput.err"
             
             if (Test-Path "$sfcOutput.err") {
                 $sfcErrors = Get-Content -Path "$sfcOutput.err" -Encoding UTF8 -ErrorAction Stop
@@ -183,8 +184,8 @@ function Start-FinalVerifyModule {
                 $results = $retryResults
             }
         }
-        
-        Write-Log "Verificación final completada" -Module "FinalVerify"
+    
+    Write-Log "Verificación final completada" -Module "FinalVerify"
         return $results
     }
     catch {
@@ -194,9 +195,9 @@ function Start-FinalVerifyModule {
         return $results
     }
     finally {
-        # Limpiar archivos temporales
+        # Limpiar solo archivos temporales, preservar archivos críticos
         foreach ($file in $tempFiles) {
-            if (Test-Path $file) {
+            if (Test-Path $file -and $file -notin $criticalFiles) {
                 try {
                     Remove-Item $file -Force
                 }
@@ -206,12 +207,12 @@ function Start-FinalVerifyModule {
             }
         }
         
-        # Limpiar logs antiguos
+        # Limpiar logs antiguos excepto los críticos
         $logRetentionDays = $Config.logging.retention_days
         $logPath = $Config.logging.path
         if (Test-Path $logPath) {
             Get-ChildItem -Path $logPath -File | Where-Object {
-                $_.LastWriteTime -lt (Get-Date).AddDays(-$logRetentionDays)
+                $_.LastWriteTime -lt (Get-Date).AddDays(-$logRetentionDays) -and $_.FullName -notin $criticalFiles
             } | ForEach-Object {
                 try {
                     Remove-Item $_.FullName -Force
