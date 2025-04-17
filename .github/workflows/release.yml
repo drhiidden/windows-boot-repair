@@ -40,7 +40,7 @@ jobs:
         Write-Output "Created $zipName"
     
     - name: Create Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: WindowsBootRepairMCP-v*.zip
         body: |
