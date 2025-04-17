@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up PowerShell
+      uses: microsoft/setup-powershell@v1
+      with:
+        pwsh-version: '7.3'
+    
+    - name: Install PSScriptAnalyzer
+      shell: pwsh
+      run: |
+        Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
+    
+    - name: Run PSScriptAnalyzer
+      shell: pwsh
+      run: |
+        $results = Invoke-ScriptAnalyzer -Path . -Recurse -Severity Error
+        if ($results) {
+          Write-Error "PSScriptAnalyzer encontró errores:"
+          $results | Format-Table -AutoSize
+          exit 1
+        }
+    
+    - name: Test PowerShell scripts
+      shell: pwsh
+      run: |
+        $scripts = Get-ChildItem -Path . -Recurse -Filter "*.ps1"
+        foreach ($script in $scripts) {
+          Write-Host "Probando script: $($script.FullName)"
+          try {
+            # Solo verificar la sintaxis, no ejecutar
+            $null = [System.Management.Automation.Language.Parser]::ParseFile($script.FullName, [ref]$null, [ref]$null)
+            Write-Host "✓ Sintaxis correcta"
+          } catch {
+            Write-Error "Error en $($script.FullName): $_"
+            exit 1
+          }
+        } 

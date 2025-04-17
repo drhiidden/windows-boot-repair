@@ -1,0 +1,27 @@
+name: 'Close stale issues and PRs'
+on:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  stale:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/stale@v5
+        with:
+          stale-issue-message: 'Este issue ha estado inactivo durante 30 días. ¿Todavía es relevante? Si es así, por favor, responde para mantenerlo abierto.'
+          stale-pr-message: 'Este PR ha estado inactivo durante 30 días. ¿Todavía es relevante? Si es así, por favor, responde para mantenerlo abierto.'
+          close-issue-message: 'Este issue ha estado inactivo durante 60 días y será cerrado. Si necesitas más ayuda, por favor, crea un nuevo issue.'
+          close-pr-message: 'Este PR ha estado inactivo durante 60 días y será cerrado. Si necesitas más ayuda, por favor, crea un nuevo PR.'
+          days-before-issue-stale: 30
+          days-before-pr-stale: 30
+          days-before-issue-close: 60
+          days-before-pr-close: 60
+          exempt-issue-labels: 'pinned,security'
+          exempt-pr-labels: 'pinned,security'
+          only-labels: ''
+          operations-per-run: 100
+          remove-issue-stale-when-updated: true
+          remove-pr-stale-when-updated: true
+          remove-stale-when-updated: true
+          debug-only: false 

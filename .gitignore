@@ -1,0 +1,29 @@
+# Logs
+logs/*
+!logs/.gitkeep
+
+# PowerShell
+*.ps1.user
+*.ps1.xml
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+
+# Temporales
+*.tmp
+*.temp
+
+# Archivos de salida
+tree_output.md
+*.output
+*.log
+!logs/.gitkeep
+
+# Archivos de configuración local
+*.local.json
+*.local.psd1 

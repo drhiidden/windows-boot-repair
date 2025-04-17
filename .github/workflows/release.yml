@@ -1,0 +1,65 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up PowerShell
+      uses: microsoft/setup-powershell@v1
+      with:
+        pwsh-version: '7.3'
+    
+    - name: Install PSScriptAnalyzer
+      shell: pwsh
+      run: |
+        Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
+    
+    - name: Run PSScriptAnalyzer
+      shell: pwsh
+      run: |
+        $results = Invoke-ScriptAnalyzer -Path . -Recurse -Severity Error
+        if ($results) {
+          Write-Error "PSScriptAnalyzer encontró errores:"
+          $results | Format-Table -AutoSize
+          exit 1
+        }
+    
+    - name: Create Release ZIP
+      shell: pwsh
+      run: |
+        $version = $env:GITHUB_REF -replace 'refs/tags/v', ''
+        $zipName = "WindowsBootRepairMCP-v$version.zip"
+        Compress-Archive -Path .\* -DestinationPath $zipName -Force
+        Write-Output "Created $zipName"
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: WindowsBootRepairMCP-v*.zip
+        body: |
+          # Windows Boot Repair MCP v${{ github.ref_name }}
+          
+          ## Cambios en esta versión
+          
+          - Mejoras en el sistema de logging
+          - Correcciones de errores
+          - Nuevas características
+          
+          ## Instalación
+          
+          Descarga el archivo ZIP y sigue las instrucciones en el README.
+          
+          ## Notas de seguridad
+          
+          - Siempre ejecuta la herramienta con privilegios de administrador
+          - Utiliza el modo simulación para pruebas iniciales
+          - Crea backups manuales adicionales antes de ejecutar cambios reales
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
