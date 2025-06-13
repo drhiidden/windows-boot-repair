@@ -155,7 +155,7 @@ exit
                 $bcdbootOutput = Join-Path $backupPath "bcdboot.log"
                 $criticalFiles += $bcdbootOutput
                 
-                $bcdbootProcess = Start-Process -FilePath "bcdboot.exe" -ArgumentList "$($systemInfo.SystemDrive.DriveLetter)\Windows /s M: /f UEFI" -NoNewWindow -Wait -RedirectStandardOutput $bcdbootOutput -RedirectStandardError "$bcdbootOutput.err"
+                $null = Start-Process -FilePath "bcdboot.exe" -ArgumentList "$($systemInfo.SystemDrive.DriveLetter)\Windows /s M: /f UEFI" -NoNewWindow -Wait -RedirectStandardOutput $bcdbootOutput -RedirectStandardError "$bcdbootOutput.err"
                 $criticalFiles += "$bcdbootOutput.err"
                 
                 if (Test-Path "$bcdbootOutput.err") {
