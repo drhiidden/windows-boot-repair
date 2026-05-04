@@ -7,7 +7,7 @@ jobs:
   stale:
     runs-on: windows-latest
     steps:
-      - uses: actions/stale@v5
+      - uses: actions/stale@v10
         with:
           stale-issue-message: 'Este issue ha estado inactivo durante 30 días. ¿Todavía es relevante? Si es así, por favor, responde para mantenerlo abierto.'
           stale-pr-message: 'Este PR ha estado inactivo durante 30 días. ¿Todavía es relevante? Si es así, por favor, responde para mantenerlo abierto.'
