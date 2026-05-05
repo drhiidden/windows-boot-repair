@@ -1,8 +1,0 @@
-blank_issues_enabled: false
-contact_links:
-  - name: Soporte Técnico
-    url: https://github.com/TU-USUARIO/WindowsBootRepairMCP/issues
-    about: Por favor, pregunta y obtén ayuda de la comunidad.
-  - name: Reportar Vulnerabilidad
-    url: mailto:TU-EMAIL@ejemplo.com
-    about: Por favor, reporta vulnerabilidades de seguridad por correo electrónico. 
