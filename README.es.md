@@ -2,12 +2,8 @@
 
 **Idiomas:** [English](README.md) · Español
 
-<div align="center">
-
 [![Licencia: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![visitas](https://komarev.com/ghpvc/?username=lab-windows-boot-repair&label=visitas&color=0e75b6)](https://github.com/drhiidden/windows-boot-repair)
-
-</div>
+[![visitas](https://komarev.com/ghpvc/?username=drhiidden&repo=windows-boot-repair&label=visitas&color=0e75b6)](https://github.com/drhiidden/windows-boot-repair)
 
 Herramienta **PowerShell** para **diagnosticar y reparar** el gestor de arranque de Windows (BIOS/UEFI, BCD, MBR).
 
