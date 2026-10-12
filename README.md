@@ -1,83 +1,79 @@
 # Windows Boot Repair Toolkit
 
+**Languages:** English · [Español](README.es.md)
+
+<div align="center">
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-![visitors](https://komarev.com/ghpvc/?username=drhiidden&repo=windows-boot-repair&color=00ff88&style=flat-square)
+[![views](https://komarev.com/ghpvc/?username=lab-windows-boot-repair&label=views&color=0e75b6)](https://github.com/drhiidden/windows-boot-repair)
 
-Herramienta **PowerShell** para diagnóstico y reparación del gestor de arranque de Windows (BIOS/UEFI, BCD, MBR).
+</div>
 
-> **Sobre el nombre:** el repo se llamaba `WindowsBootRepairMCP`. Aquí **MCP = pipeline modular de módulos PowerShell**, no un servidor [Model Context Protocol](https://modelcontextprotocol.io/) para IDEs. No expone herramientas MCP para Cursor/Claude Desktop.
+PowerShell toolkit to **diagnose and repair** the Windows boot manager (BIOS/UEFI, BCD, MBR).
 
-## Descripción
+> **About the name:** the repository was formerly `WindowsBootRepairMCP`. Here **MCP means a modular PowerShell module pipeline**, not an [Model Context Protocol](https://modelcontextprotocol.io/) server for IDEs.
 
-Diseñada para entornos **Windows PE**, instalaciones normales con privilegios de administrador, o medios tipo Hiren's Boot CD. Incluye diagnóstico, reparación, verificación final, logging estructurado, modo simulación y copias de seguridad antes de cambios destructivos.
+## Overview
 
-## Características
+Built for **Windows PE**, elevated normal Windows sessions, or recovery media (e.g. Hiren's Boot CD). Includes diagnostics, repair steps, final verification, structured logging, simulation mode, and optional backups before destructive changes.
 
-- **Diagnóstico completo**: estado de disco, SMART, integridad del sistema
-- **Reparación de arranque**: MBR, sector de arranque, BCD y configuración UEFI
-- **Verificación final**: integridad de archivos EFI y BCD
-- **Logging**: niveles configurables y retención
-- **Modo simulación**: pruebas sin aplicar cambios
-- **Backup automático**: antes de operaciones de reparación
-- **Informes**: resumen de ejecución en logs
+## Features
 
-## Requisitos
+- Full boot diagnostics (disk health, SMART, system integrity)
+- Boot repair: MBR, boot sector, BCD, UEFI configuration
+- Post-repair verification (EFI files, BCD)
+- Configurable logging and retention
+- Simulation mode (no changes applied)
+- Automatic backup before repair operations
 
-- Windows 10/11 o Windows PE 10/11
-- Mínimo 2 GB RAM
-- ~100 MB de espacio en disco
-- Privilegios de administrador
+## Requirements
 
-## Instalación
+- Windows 10/11 or Windows PE 10/11
+- 2 GB RAM minimum
+- ~100 MB disk space
+- Administrator privileges
+
+## Quick start
 
 ```powershell
 git clone https://github.com/drhiidden/windows-boot-repair.git
 cd windows-boot-repair
-```
-
-### En Windows PE
-
-1. Copiar el árbol a USB o disco local.
-2. Ejecutar:
-
-```powershell
 .\scripts\repair.ps1 -ConfirmExecution -BackupBeforeExecution
 ```
 
-### En Hiren's Boot CD
+See [README.es.md](README.es.md) for Windows PE / Hiren's Boot CD steps in Spanish.
 
-1. Copiar a `Tools\windows-boot-repair\`.
-2. Misma invocación que en PE.
-
-## Estructura del proyecto
+## Project layout
 
 ```
 windows-boot-repair/
-├── scripts/          # Entrada repair.ps1, tests, config PSD1
+├── scripts/          # repair.ps1, tests, PSD1 config
 ├── modules/          # Diagnosis, BootRepair, Backup, Logging, …
-├── config/           # module-pipeline.config.json (orden de módulos)
-├── logs/             # Salida de ejecución (gitignored)
+├── config/           # module-pipeline.config.json
+├── logs/             # runtime logs (gitignored)
 ├── tests/
 └── docs/
 ```
 
-## Uso
+Optional orchestrator: `main.ps1` reads `config/module-pipeline.config.json`.
 
-Documentación ampliada: [docs/README.md](docs/README.md).
+## Documentation
 
-Orquestador modular (opcional): `main.ps1` lee `config/module-pipeline.config.json`.
+| Doc | Purpose |
+|-----|---------|
+| [docs/README.md](docs/README.md) | Detailed usage |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute |
+| [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Common issues |
+| [SECURITY.md](SECURITY.md) | Reporting vulnerabilities |
+| [CHANGELOG.md](CHANGELOG.md) | Release notes |
 
-## Licencia
+## License
 
-MIT — ver [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE).
 
-## Seguridad
+## Safety
 
-⚠️ **Advertencias**
-
-- Requiere confirmación explícita (`-ConfirmExecution`) para cambios reales.
-- Probar primero en VM o hardware desechable.
-- Usar `-BackupBeforeExecution` siempre que sea posible.
-- Revisar logs ante cualquier error.
-
-Política de reporte: [SECURITY.md](SECURITY.md).
+- Use `-ConfirmExecution` only when you intend to apply changes.
+- Test on a VM or spare machine first.
+- Prefer `-BackupBeforeExecution` when supported.
+- Read logs after any failure.
