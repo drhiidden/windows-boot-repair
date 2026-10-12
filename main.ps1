@@ -1,7 +1,7 @@
 #Requires -RunAsAdministrator
 
 # Importar módulos
-$configPath = Join-Path $PSScriptRoot "mcp.config.json"
+$configPath = Join-Path $PSScriptRoot "config/module-pipeline.config.json"
 $config = Get-Content $configPath | ConvertFrom-Json
 
 # Variable global para el estado de ejecución

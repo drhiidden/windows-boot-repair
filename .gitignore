@@ -10,9 +10,11 @@ logs/*
 Thumbs.db
 desktop.ini
 
-# IDE
+# IDE / agentes (no publicar metodología)
 .vscode/
 .idea/
+.cursor/
+AGENTS.md
 
 # Temporales
 *.tmp
