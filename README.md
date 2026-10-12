@@ -2,12 +2,8 @@
 
 **Languages:** English · [Español](README.es.md)
 
-<div align="center">
-
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![views](https://komarev.com/ghpvc/?username=lab-windows-boot-repair&label=views&color=0e75b6)](https://github.com/drhiidden/windows-boot-repair)
-
-</div>
+[![views](https://komarev.com/ghpvc/?username=drhiidden&repo=windows-boot-repair&label=views&color=0e75b6)](https://github.com/drhiidden/windows-boot-repair)
 
 PowerShell toolkit to **diagnose and repair** the Windows boot manager (BIOS/UEFI, BCD, MBR).
 
