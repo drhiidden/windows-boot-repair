@@ -3,7 +3,8 @@
 **Idiomas:** [English](README.md) · Español
 
 [![Licencia: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-![visitas](https://visitor-badge.laobi.icu/badge?page_id=drhiidden.windows-boot-repair&title=visitas&left_color=555&right_color=0e75b6)
+![visitas](https://komarev.com/ghpvc/?username=drhiidden&repo=windows-boot-repair&label=visitas&color=0e75b6)
+
 Herramienta **PowerShell** para **diagnosticar y reparar** el gestor de arranque de Windows (BIOS/UEFI, BCD, MBR).
 
 > **Sobre el nombre:** el repositorio se llamaba `WindowsBootRepairMCP`. Aquí **MCP = pipeline modular de módulos PowerShell**, no un servidor [Model Context Protocol](https://modelcontextprotocol.io/) para IDEs.

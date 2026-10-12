@@ -3,7 +3,8 @@
 **Languages:** English · [Español](README.es.md)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-![views](https://visitor-badge.laobi.icu/badge?page_id=drhiidden.windows-boot-repair&title=views&left_color=555&right_color=0e75b6)
+![views](https://komarev.com/ghpvc/?username=drhiidden&repo=windows-boot-repair&label=views&color=0e75b6)
+
 PowerShell toolkit to **diagnose and repair** the Windows boot manager (BIOS/UEFI, BCD, MBR).
 
 > **About the name:** the repository was formerly `WindowsBootRepairMCP`. Here **MCP means a modular PowerShell module pipeline**, not an [Model Context Protocol](https://modelcontextprotocol.io/) server for IDEs.
